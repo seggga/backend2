@@ -1,9 +1,7 @@
 package handler
 
 import (
-	"database/sql"
 	"encoding/json"
-	"errors"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -16,6 +14,7 @@ type Router struct {
 	stor *repo.Storage
 }
 
+// NewRouter creates a router with specified storage and handlers
 func NewRouter(stor *repo.Storage) *Router {
 	r := &Router{
 		ServeMux: http.NewServeMux(),
@@ -35,7 +34,7 @@ func NewRouter(stor *repo.Storage) *Router {
 // CreateUser adds a new user, passed with post-request
 func (rt *Router) CreateUser(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "bad method", http.StatusMethodNotAllowed)
+		http.Error(w, "method mismatch", http.StatusMethodNotAllowed)
 		return
 	}
 	defer r.Body.Close()
@@ -66,7 +65,7 @@ func (rt *Router) CreateUser(w http.ResponseWriter, r *http.Request) {
 // CreateGroup adds a new group, passed with post-request
 func (rt *Router) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "bad method", http.StatusMethodNotAllowed)
+		http.Error(w, "method mismatch", http.StatusMethodNotAllowed)
 		return
 	}
 	defer r.Body.Close()
@@ -94,22 +93,21 @@ func (rt *Router) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	)
 }
 
-// AddToGroup add user specified into the group, passed wity get-request
+// AddToGroup add user specified into the group, passed with get-request
 // .../add-to-group?uid=...&gid=...
 func (rt *Router) AddToGroup(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		http.Error(w, "bad method", http.StatusMethodNotAllowed)
+		http.Error(w, "method mismatch", http.StatusMethodNotAllowed)
 		return
 	}
 
-	//	...
-
-	suid := r.URL.Query().Get("uid")
-	if suid == "" {
-		http.Error(w, "bad request", http.StatusBadRequest)
+	// check and parse parameters
+	uidParameter := r.URL.Query().Get("uid")
+	if uidParameter == "" {
+		http.Error(w, "uid should be set", http.StatusBadRequest)
 		return
 	}
-	uid, err := uuid.Parse(suid)
+	uid, err := uuid.Parse(uidParameter)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -119,26 +117,119 @@ func (rt *Router) AddToGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	nbu, err := rt.us.Read(r.Context(), uid)
+	gidParameter := r.URL.Query().Get("gid")
+	if gidParameter == "" {
+		http.Error(w, "gid should be set", http.StatusBadRequest)
+		return
+	}
+	gid, err := uuid.Parse(gidParameter)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			http.Error(w, "not found", http.StatusNotFound)
-		} else {
-			http.Error(w, "error when reading", http.StatusInternalServerError)
-		}
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if (gid == uuid.UUID{}) {
+		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
 
-	_ = json.NewEncoder(w).Encode(
-		User{
-			ID:         nbu.ID,
-			Name:       nbu.Name,
-			Data:       nbu.Data,
-			Permission: nbu.Permissions,
-		},
-	)
+	err = rt.stor.Repo.AddToGroup(r.Context(), uid, gid)
+	if err != nil {
+		http.Error(w, "error adding user to the group", http.StatusInternalServerError)
+		return
+	}
+
 }
 
-func (rt *Router) RemoveFromGroup(w http.ResponseWriter, r *http.Request)
-func (rt *Router) SearchUser(w http.ResponseWriter, r *http.Request)
+// RemoveFromGroup removes user specified from the group, passed with get-request
+// .../remove-from-group?uid=...&gid=...
+func (rt *Router) RemoveFromGroup(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method mismatch", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// check and parse parameters
+	uidParameter := r.URL.Query().Get("uid")
+	if uidParameter == "" {
+		http.Error(w, "uid should be set", http.StatusBadRequest)
+		return
+	}
+	uid, err := uuid.Parse(uidParameter)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if (uid == uuid.UUID{}) {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	gidParameter := r.URL.Query().Get("gid")
+	if gidParameter == "" {
+		http.Error(w, "gid should be set", http.StatusBadRequest)
+		return
+	}
+	gid, err := uuid.Parse(gidParameter)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if (gid == uuid.UUID{}) {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	err = rt.stor.Repo.RemoveFromGroup(r.Context(), uid, gid)
+	if err != nil {
+		http.Error(w, "error adding user to the group", http.StatusInternalServerError)
+		return
+	}
+}
+
+// SearchUser searches users by name or by group specified, passed with get-request
+// .../search-user?name=...&gid1=...&gid2=...&gid3=...
+func (rt *Router) SearchUser(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method mismatch", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// check and parse parameters
+	name := r.URL.Query().Get("name")
+
+	gids := make([]uuid.UUID)
+	gidParams := make([]string)
+	gidParameter := r.URL.Query().Get("gid1")
+	if gidParameter != "" {
+		gidParams = append(gidParams, gidParameter)
+	}
+
+	gidParameter = r.URL.Query().Get("gid2")
+	if gidParameter != "" {
+		gidParams = append(gidParams, gidParameter)
+	}
+
+	gidParameter = r.URL.Query().Get("gid3")
+	if gidParameter != "" {
+		gidParams = append(gidParams, gidParameter)
+	}
+
+	/// .... проверить, что передано в параметрах
+	gidParameter := r.URL.Query().Get("gid")
+	if gidParameter == "" {
+		http.Error(w, "gid should be set", http.StatusBadRequest)
+		return
+	}
+	gid, err := uuid.Parse(gidParameter)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if (gid == uuid.UUID{}) {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+}
+
 func (rt *Router) SearchGroup(w http.ResponseWriter, r *http.Request)
