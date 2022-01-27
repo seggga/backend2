@@ -11,7 +11,7 @@ import (
 // Repo is interface to interact with particular repository
 type Repo interface {
 	CreateUser(ctx context.Context, u entity.User) (*entity.User, error)
-	CreateGroup(ctx context.Context, u entity.User) (*uuid.UUID, error)
+	CreateGroup(ctx context.Context, u entity.Group) (*entity.Group, error)
 	Read(ctx context.Context, uid uuid.UUID) (*user.User, error)
 	AddToGroup(ctx context.Context, uid uuid.UUID) error
 	RemoveFromGroup(ctx context.Context, uid uuid.UUID) error
