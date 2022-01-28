@@ -15,8 +15,8 @@ type Repo interface {
 	ReadGroup(ctx context.Context, uid uuid.UUID) (*entity.Group, error)
 	AddToGroup(ctx context.Context, uid, gid uuid.UUID) error
 	RemoveFromGroup(ctx context.Context, uid, gid uuid.UUID) error
-	SearchUser(ctx context.Context, name string, ids ...uuid.UUID) ([]uuid.UUID, error)
-	SearchGroup(ctx context.Context, name string, ids ...uuid.UUID) ([]uuid.UUID, error)
+	SearchUser(ctx context.Context, name string, gids []uuid.UUID) ([]entity.User, error)
+	SearchGroup(ctx context.Context, name string, uids []uuid.UUID) ([]entity.Group, error)
 }
 
 // Storage implements main logic using Repo methods
