@@ -6,16 +6,16 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/seggga/backend2/internal/entity"
-	"github.com/seggga/backend2/internal/logic/repo"
+	"github.com/seggga/backend2/internal/logic/storage"
 )
 
 type Router struct {
 	*http.ServeMux
-	stor *repo.Storage
+	stor *storage.DB
 }
 
 // NewRouter creates a router with specified storage and handlers
-func NewRouter(stor *repo.Storage) *Router {
+func NewRouter(stor *storage.DB) *Router {
 	r := &Router{
 		ServeMux: http.NewServeMux(),
 		stor:     stor,
@@ -45,7 +45,7 @@ func (rt *Router) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newUser, err := rt.stor.Repo.CreateUser(r.Context(), u)
+	newUser, err := rt.stor.CreateUser(r.Context(), u)
 	if err != nil {
 		http.Error(w, "error creating new user", http.StatusInternalServerError)
 		return
@@ -76,7 +76,7 @@ func (rt *Router) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newGroup, err := rt.stor.Repo.CreateGroup(r.Context(), g)
+	newGroup, err := rt.stor.CreateGroup(r.Context(), g)
 	if err != nil {
 		http.Error(w, "error creating new user", http.StatusInternalServerError)
 		return
@@ -113,7 +113,7 @@ func (rt *Router) AddToGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if (uid == uuid.UUID{}) {
-		http.Error(w, "bad request", http.StatusBadRequest)
+		http.Error(w, "uid is nothing but ZERO", http.StatusBadRequest)
 		return
 	}
 
@@ -128,11 +128,11 @@ func (rt *Router) AddToGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if (gid == uuid.UUID{}) {
-		http.Error(w, "bad request", http.StatusBadRequest)
+		http.Error(w, "gid is nothing but ZERO", http.StatusBadRequest)
 		return
 	}
 
-	err = rt.stor.Repo.AddToGroup(r.Context(), uid, gid)
+	err = rt.stor.AddToGroup(r.Context(), uid, gid)
 	if err != nil {
 		http.Error(w, "error adding user to the group", http.StatusInternalServerError)
 		return
@@ -180,7 +180,7 @@ func (rt *Router) RemoveFromGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = rt.stor.Repo.RemoveFromGroup(r.Context(), uid, gid)
+	err = rt.stor.RemoveFromGroup(r.Context(), uid, gid)
 	if err != nil {
 		http.Error(w, "error adding user to the group", http.StatusInternalServerError)
 		return
@@ -229,7 +229,7 @@ func (rt *Router) SearchUser(w http.ResponseWriter, r *http.Request) {
 		gids = append(gids, gid)
 	}
 
-	users, err := rt.stor.Repo.SearchUser(r.Context(), name, gids)
+	users, err := rt.stor.SearchUser(r.Context(), name, gids)
 	if err != nil {
 		http.Error(w, "error searching users by name and group IDs", http.StatusInternalServerError)
 		return
@@ -288,7 +288,7 @@ func (rt *Router) SearchGroup(w http.ResponseWriter, r *http.Request) {
 		uids = append(uids, uid)
 	}
 
-	groups, err := rt.stor.Repo.SearchGroup(r.Context(), name, uids)
+	groups, err := rt.stor.SearchGroup(r.Context(), name, uids)
 	if err != nil {
 		http.Error(w, "error searching groups by name and user IDs", http.StatusInternalServerError)
 		return
