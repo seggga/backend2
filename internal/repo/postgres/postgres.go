@@ -10,12 +10,16 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/seggga/backend2/internal/entity"
+	"github.com/seggga/backend2/internal/logic/storage"
 )
 
 type PGRepo struct {
 	db *pgxpool.Pool
 }
 
+var _ storage.Repo = &PGRepo{}
+
+// NewDB connects to DB and produces PGRepo
 func NewDB(ctx context.Context, connStr string) (*PGRepo, error) {
 	// pool, err := getConn(connStr)
 	config, err := getPGXPoolConfig(connStr)
@@ -45,9 +49,6 @@ func (pg *PGRepo) CreateGroup(ctx context.Context, g entity.Group) error {
 	_, err := pg.db.Exec(ctx, "INSERT INTO groups(uuid, group_name, group_type, descr) VALUES ($1, $2, $3, $4)", g.ID, g.Name, g.Type, g.Description)
 	return err
 }
-
-// func (pg *PGRepo) ReadUser(ctx context.Context, uid uuid.UUID) (*entity.User, error)
-// func (pg *PGRepo) ReadGroup(ctx context.Context, uid uuid.UUID) (*entity.Group, error)
 
 // AddToGroup adds a row (gid, uid) into membership table
 func (pg *PGRepo) AddToGroup(ctx context.Context, uid, gid uuid.UUID) error {
