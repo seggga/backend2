@@ -13,8 +13,6 @@ import (
 type Repo interface {
 	CreateUser(ctx context.Context, u entity.User) error
 	CreateGroup(ctx context.Context, u entity.Group) error
-	ReadUser(ctx context.Context, uid uuid.UUID) (*entity.User, error)
-	ReadGroup(ctx context.Context, uid uuid.UUID) (*entity.Group, error)
 	AddToGroup(ctx context.Context, uid, gid uuid.UUID) error
 	RemoveFromGroup(ctx context.Context, uid, gid uuid.UUID) error
 	SearchUser(ctx context.Context, name string, gids []uuid.UUID) ([]entity.User, error)
