@@ -182,7 +182,7 @@ func (rt *Router) RemoveFromGroup(w http.ResponseWriter, r *http.Request) {
 
 	err = rt.stor.RemoveFromGroup(r.Context(), uid, gid)
 	if err != nil {
-		http.Error(w, "error adding user to the group", http.StatusInternalServerError)
+		http.Error(w, "error removing user from the group", http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
