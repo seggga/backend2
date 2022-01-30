@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -10,8 +11,8 @@ import (
 
 // Repo is interface to interact with particular storage repository
 type Repo interface {
-	CreateUser(ctx context.Context, u entity.User) (*entity.User, error)
-	CreateGroup(ctx context.Context, u entity.Group) (*entity.Group, error)
+	CreateUser(ctx context.Context, u entity.User) error
+	CreateGroup(ctx context.Context, u entity.Group) error
 	ReadUser(ctx context.Context, uid uuid.UUID) (*entity.User, error)
 	ReadGroup(ctx context.Context, uid uuid.UUID) (*entity.Group, error)
 	AddToGroup(ctx context.Context, uid, gid uuid.UUID) error
@@ -35,21 +36,21 @@ func NewDB(repo Repo) *DB {
 // CreateUser adds ID to the passed user data and calls repo's CreateUser method
 func (db *DB) CreateUser(ctx context.Context, u entity.User) (*entity.User, error) {
 	u.ID = uuid.New()
-	newUser, err := db.repo.CreateUser(ctx, u)
+	err := db.repo.CreateUser(ctx, u)
 	if err != nil {
 		return nil, fmt.Errorf("error creating new user: %w", err)
 	}
-	return newUser, nil
+	return &u, nil
 }
 
 // CreateGroup adds ID to the passed group data and calls repo's CreateGroup method
 func (db *DB) CreateGroup(ctx context.Context, g entity.Group) (*entity.Group, error) {
 	g.ID = uuid.New()
-	newGroup, err := db.repo.CreateGroup(ctx, g)
+	err := db.repo.CreateGroup(ctx, g)
 	if err != nil {
 		return nil, fmt.Errorf("error creating new user: %w", err)
 	}
-	return newGroup, nil
+	return &g, nil
 }
 
 // AddToGroup calls same function from repo
@@ -64,6 +65,11 @@ func (db *DB) RemoveFromGroup(ctx context.Context, uid, gid uuid.UUID) error {
 
 // SearchUser ...
 func (db *DB) SearchUser(ctx context.Context, name string, gids []uuid.UUID) ([]entity.User, error) {
+
+	if name == "" && len(gids) == 0 {
+		return nil, errors.New("name and gids are empty, at least one criteria should be set")
+	}
+
 	users, err := db.repo.SearchUser(ctx, name, gids)
 	if err != nil {
 		return nil, fmt.Errorf("error searching users: %w", err)
@@ -73,6 +79,11 @@ func (db *DB) SearchUser(ctx context.Context, name string, gids []uuid.UUID) ([]
 
 // SearchGroup ...
 func (db *DB) SearchGroup(ctx context.Context, name string, uids []uuid.UUID) ([]entity.Group, error) {
+
+	if name == "" && len(uids) == 0 {
+		return nil, errors.New("name and uids are empty, at least one criteria should be set")
+	}
+
 	groups, err := db.repo.SearchGroup(ctx, name, uids)
 	if err != nil {
 		return nil, fmt.Errorf("error searching groups: %w", err)
