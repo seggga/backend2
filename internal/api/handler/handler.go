@@ -215,7 +215,7 @@ func (rt *Router) SearchUser(w http.ResponseWriter, r *http.Request) {
 		gidParams = append(gidParams, gidParameter)
 	}
 
-	gids := make([]uuid.UUID, 1)
+	gids := make([]uuid.UUID, 0)
 	for _, gidParameter = range gidParams {
 		gid, err := uuid.Parse(gidParameter)
 		if err != nil {
@@ -274,7 +274,7 @@ func (rt *Router) SearchGroup(w http.ResponseWriter, r *http.Request) {
 		uidParams = append(uidParams, uidParameter)
 	}
 
-	uids := make([]uuid.UUID, 1)
+	uids := make([]uuid.UUID, 0)
 	for _, uidParameter = range uidParams {
 		uid, err := uuid.Parse(uidParameter)
 		if err != nil {
