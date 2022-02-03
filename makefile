@@ -1,6 +1,6 @@
 USERNAME := seggga
 APP_NAME := k8s-go-app
-VERSION := latest
+VERSION := 1.0.1
 
 #write here path for your project
 PROJECT := github.com/seggga/backend2
