@@ -50,6 +50,7 @@ func (s Server) Serve(ctx context.Context) error {
 func (s Server) initHandlers(e *echo.Echo) {
 	e.GET("/", handler)
 	e.GET("/__heartbeat__", heartbeatHandler)
+	e.GET("/__readiness__", readinessHandler)
 	e.GET("/__version__", s.versionHandler)
 
 	e.Any("/*", func(c echo.Context) error {
@@ -62,6 +63,10 @@ func handler(c echo.Context) error {
 }
 
 func heartbeatHandler(c echo.Context) error {
+	return c.NoContent(http.StatusOK)
+}
+
+func readinessHandler(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
