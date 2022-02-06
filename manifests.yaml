@@ -32,7 +32,7 @@ spec:
             name: src
       containers:
         - name: static-srv
-          image: docker.io/seggga/static_server
+          image: docker.io/seggga/static_server:1.0.1
           imagePullPolicy: Always
           volumeMounts:
             - mountPath: /static
