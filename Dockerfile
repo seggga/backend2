@@ -20,7 +20,7 @@ COPY . ${WORKDIR}
 WORKDIR ${WORKDIR}
 
 RUN set -xe ;\
-    go build -ldflags="-X '${PROJECT}/version.Version=${VERSION}' -X '${PROJECT}/version.Commit=${GIT_COMMIT}'"  -o /go/bin/static-srv ;\
+    go build -ldflags="-X '${PROJECT}/internal/version.Version=${VERSION}' -X '${PROJECT}/internal/version.Commit=${GIT_COMMIT}'"  -o /go/bin/static-srv ./cmd/static-srv/main.go ;\
     ls -lhtr /go/bin/
 
 FROM golang:1.15.1

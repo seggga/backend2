@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/seggga/backend2/internal/config"
+	"github.com/seggga/backend2/config"
 	"github.com/seggga/backend2/internal/server"
 	"github.com/seggga/backend2/internal/version"
 )
@@ -20,7 +20,7 @@ func main() {
 	}
 	log.Printf("LAUNCH MODE: %v\n", launchMode)
 
-	cfg, err := config.Load(launchMode, "./internal/config")
+	cfg, err := config.Load(launchMode, "./config")
 	if err != nil {
 		log.Fatal(err)
 	}
