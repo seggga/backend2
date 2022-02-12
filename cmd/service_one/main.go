@@ -54,6 +54,7 @@ const sqlInsertEntity = `
   INSERT INTO entities(id, data) VALUES (?, ?)
   `
 
+// AddEntityHandler ...
 func AddEntityHandler(w http.ResponseWriter, r *http.Request) {
 	res, err := http.Get(fmt.Sprintf("http://acl/identity?token=%s", r.FormValue("token")))
 	switch {
@@ -74,14 +75,16 @@ func AddEntityHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 const sqlSelectEntities = `
-  SELECT id, data FROM entities
+  SELECT id, data FROM entities;
   `
 
+// ListEntityItemResponse ...
 type ListEntityItemResponse struct {
-	Id   string `json:"id"`
+	ID   string `json:"id"`
 	Data string `json:"data"`
 }
 
+// ListEntitiesHandler ...
 func ListEntitiesHandler(w http.ResponseWriter, r *http.Request) {
 	rr, err := db.Query(sqlSelectEntities)
 	if err != nil {
@@ -93,7 +96,7 @@ func ListEntitiesHandler(w http.ResponseWriter, r *http.Request) {
 	var ii = []*ListEntityItemResponse{}
 	for rr.Next() {
 		i := &ListEntityItemResponse{}
-		err = rr.Scan(&i.Id, &i.Data)
+		err = rr.Scan(&i.ID, &i.Data)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
