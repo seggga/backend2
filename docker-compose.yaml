@@ -3,17 +3,17 @@ services:
 
   acl:
     build:
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile_acl
       context: .
-    command: "./bin/acl"
+    command: "/go/bin/acl"
     ports:
       - 8001:80
 
   router:
     build:
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile_router
       context: .
-    command: "./bin/router"
+    command: "/go/bin/router"
     ports:
       - 8002:80
 
