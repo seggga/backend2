@@ -37,6 +37,7 @@ func main() {
 	}
 }
 
+// GetIdentityHandler ...
 func GetIdentityHandler(w http.ResponseWriter, r *http.Request) {
 	if r.FormValue("token") == "admin_secret_token" {
 		w.WriteHeader(http.StatusOK)

@@ -10,6 +10,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/seggga/backend2/internal/red"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 var (
@@ -23,22 +25,19 @@ var (
 	}
 )
 
-func init() {
+func main() {
 	router.
 		HandleFunc("/entities", measurable(ListEntitiesHandler)).
 		Methods(http.MethodGet)
 	router.
 		HandleFunc("/entity", measurable(AddEntityHandler)).
 		Methods(http.MethodPost)
-
 	var err error
 	db, err = sql.Open("mysql", "root:test@tcp(mysql:3306)/test")
 	if err != nil {
 		panic(err)
 	}
-}
 
-func main() {
 	go func() {
 		http.Handle("/metrics", promhttp.Handler())
 		if err := http.ListenAndServe(":9090", nil); err != http.ErrServerClosed {
