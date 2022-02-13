@@ -1,2 +1,2 @@
 run:
-	docker-compose -f docker-compose.yaml up -d
+	docker-compose --file docker-compose.yaml up -d
