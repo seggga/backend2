@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -11,7 +12,8 @@ import (
 
 	"github.com/seggga/backend2/internal/red"
 
-	_ "github.com/go-sql-driver/mysql"
+	// _ "github.com/go-sql-driver/mysql"
+	_ "github.com/golang-migrate/migrate/v4/database/mysql"
 )
 
 var (
@@ -21,6 +23,7 @@ var (
 
 	router = mux.NewRouter()
 	web    = http.Server{
+		Addr:    ":80",
 		Handler: router,
 	}
 )
@@ -33,11 +36,13 @@ func main() {
 		HandleFunc("/entity", measurable(AddEntityHandler)).
 		Methods(http.MethodPost)
 	var err error
-	db, err = sql.Open("mysql", "root:test@tcp(mysql:3306)/test")
+	db, err = sql.Open("mysql", "root:test@tcp(database:3306)/test")
 	if err != nil {
 		panic(err)
 	}
+	defer db.Close()
 
+	log.Println("connected to database")
 	go func() {
 		http.Handle("/metrics", promhttp.Handler())
 		if err := http.ListenAndServe(":9090", nil); err != http.ErrServerClosed {

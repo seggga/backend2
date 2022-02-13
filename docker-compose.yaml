@@ -17,7 +17,7 @@ services:
     ports:
       - 8002:80
 
-  mysql:
+  database:
     image: mysql:5.7
     container_name: mysql-container
     volumes:
