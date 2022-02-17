@@ -20,28 +20,3 @@ WORKDIR /go/bin
 COPY --from=builder /go/bin/router .
 
 ENTRYPOINT ["/go/bin/router"]
-
-
-
-
-# FROM golang:1.15 as modules
-# ADD go.mod go.sum /modules/
-# RUN cd /modules && go mod download
-
-# # build application
-# FROM golang:1.15 as builder
-# COPY --from=modules /go/pkg /go/pkg
-# RUN mkdir -p /src
-# ADD . /src
-# WORKDIR /src
-# #   create binary
-# RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
-# go build -o cropurl /src/cmd/cropurl/main.go
-# go build -o router /src/cmd/service_router/main.go
-
-# # start application
-# FROM scratch
-# EXPOSE 80
-# COPY --from=builder /src/router /router
-
-# CMD ["/router"]

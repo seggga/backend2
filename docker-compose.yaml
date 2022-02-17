@@ -1,22 +1,6 @@
 version: "3.7"
 services:
 
-  acl:
-    build:
-      dockerfile: Dockerfile_acl
-      context: .
-    command: "/go/bin/acl"
-    ports:
-      - 8001:80
-
-  router:
-    build:
-      dockerfile: Dockerfile_router
-      context: .
-    command: "/go/bin/router"
-    ports:
-      - 8002:80
-
   database:
     image: mysql:5.7
     container_name: mysql-container
@@ -27,6 +11,26 @@ services:
       MYSQL_DATABASE: test
     ports:
       - 8010:3306
+
+  acl:
+    build:
+      dockerfile: Dockerfile_acl
+      context: .
+    command: "/go/bin/acl"
+    container_name: acl-container
+    ports:
+      - 8001:80
+
+  router:
+    build:
+      dockerfile: Dockerfile_router
+      context: .
+    depends_on:
+      - "database"
+    container_name: router-container
+    command: "/go/bin/router"
+    ports:
+      - 8002:80
 
   grafana:
     image: grafana/grafana:6.4.4
