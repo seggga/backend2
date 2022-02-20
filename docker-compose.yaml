@@ -14,7 +14,7 @@ services:
 
   acl:
     build:
-      dockerfile: Dockerfile_acl
+      dockerfile: dockerfile_acl
       context: .
     command: "/go/bin/acl"
     container_name: acl-container
@@ -23,7 +23,7 @@ services:
 
   router:
     build:
-      dockerfile: Dockerfile_router
+      dockerfile: dockerfile_router
       context: .
     depends_on:
       - "database"
@@ -46,8 +46,8 @@ services:
       - 9100:9100
 
   prometheus:
-    image: prom/prometheus:v2.22.0
+    image: prom/prometheus:v2.33.3
     volumes:
-      - "./prometheus.yml:/etc/prometheus/prometheus.yml:ro"
+      - ./prometheus:/etc/prometheus
     ports:
       - 9090:9090
