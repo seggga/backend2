@@ -4,7 +4,7 @@ run:
 # get service IP-address
 # ip address | grep inet
 
-wrk:
+wrk_script:
 	docker run --rm \
 		-v `pwd`:/data \
 		williamyeh/wrk \
@@ -17,10 +17,15 @@ wrk:
 		http://172.26.178.125:8002/entities
 
 
-wrk2:
-	docker run --rm  -v `pwd`:/data  \
-      williamyeh/wrk  \
-      -s script.lua  http://www.google.com/
+wrk_get:
+	docker run --rm \
+		williamyeh/wrk \
+		-t50 \
+		-c100 \
+		-d10s \
+		-H 'Host: sweet-home.com' \
+		--timeout 2s \
+		http://172.26.178.125:8002/entities
 
 
 # connect to DB in container
@@ -37,7 +42,7 @@ wrk2:
 # curl http://127.0.0.1:8002/entities
 
 
-# load test
+# performance test
 # wrk -t1 -c1 -d 5m http://localhost:8002/entities
 # wrk -t1 -c1 -d5m -s ./load_test/wrk.lua http://localhost:8002
 
