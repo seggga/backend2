@@ -13,7 +13,7 @@ wrk_script:
 		-d10s \
 		-H 'Host: sweet-home.com' \
 		--timeout 2s \
-		-s ./load_test/wrk.lua \
+		-s ./load_test/load_test/wrk.lua \
 		http://172.26.178.125:8002/entities
 
 
