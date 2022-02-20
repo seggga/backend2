@@ -10,10 +10,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"github.com/seggga/backend2/internal/red"
-
-	// _ "github.com/go-sql-driver/mysql"
 	_ "github.com/golang-migrate/migrate/v4/database/mysql"
+	"github.com/seggga/backend2/internal/red"
 )
 
 var (
