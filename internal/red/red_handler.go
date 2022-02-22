@@ -3,18 +3,20 @@ package red
 import (
 	"bufio"
 	"io"
+	"log"
 	"net"
 	"net/http"
 	"strconv"
-	"time"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
 
-const (
-	StatusOK           = "ok"
-	StatusConnectError = "connect_error"
-	StatusReadError    = "read_error"
-	StatusParseError   = "parse_error"
-)
+// const (
+// 	StatusOK           = "ok"
+// 	StatusConnectError = "connect_error"
+// 	StatusReadError    = "read_error"
+// 	StatusParseError   = "parse_error"
+// )
 
 // https://stackoverflow.com/questions/58779594/using-a-custom-http-responsewriter-to-write-cookies-based-on-the-response-from-a
 type (
@@ -106,13 +108,28 @@ func (w pusherWriter) Push(target string, opts *http.PushOptions) error {
 var builders = make([]func(w *responseWriter) measurable, 1<<4)
 
 func init() {
-	builders[0] = func(w *responseWriter) measurable { return w }
-	builders[flusher] = func(w *responseWriter) measurable { return flusherWriter{w} }
-	builders[hijacker] = func(w *responseWriter) measurable { return hijackerWriter{w} }
-	builders[readerFrom] = func(w *responseWriter) measurable { return readerFromWriter{w} }
-	builders[pusher] = func(w *responseWriter) measurable { return pusherWriter{w} }
-
+	builders[0] = func(w *responseWriter) measurable {
+		log.Println("no interface")
+		return w
+	}
+	builders[flusher] = func(w *responseWriter) measurable {
+		log.Println("flusher")
+		return flusherWriter{w}
+	}
+	builders[hijacker] = func(w *responseWriter) measurable {
+		log.Println("hujacker")
+		return hijackerWriter{w}
+	}
+	builders[readerFrom] = func(w *responseWriter) measurable {
+		log.Println("readerFrom")
+		return readerFromWriter{w}
+	}
+	builders[pusher] = func(w *responseWriter) measurable {
+		log.Println("pusher")
+		return pusherWriter{w}
+	}
 	builders[flusher+hijacker] = func(w *responseWriter) measurable {
+		log.Println("hijacker flusher")
 		return struct {
 			*responseWriter
 			http.Hijacker
@@ -121,6 +138,7 @@ func init() {
 	}
 
 	builders[flusher+readerFrom] = func(w *responseWriter) measurable {
+		log.Println("readerFrom flusher")
 		return struct {
 			*responseWriter
 			io.ReaderFrom
@@ -128,6 +146,7 @@ func init() {
 		}{w, readerFromWriter{w}, flusherWriter{w}}
 	}
 	builders[flusher+pusher] = func(w *responseWriter) measurable {
+		log.Println("pusher flusher")
 		return struct {
 			*responseWriter
 			http.Pusher
@@ -135,6 +154,7 @@ func init() {
 		}{w, pusherWriter{w}, flusherWriter{w}}
 	}
 	builders[pusher+hijacker] = func(w *responseWriter) measurable {
+		log.Println("hijacker pusher")
 		return struct {
 			*responseWriter
 			http.Hijacker
@@ -142,6 +162,7 @@ func init() {
 		}{w, hijackerWriter{w}, pusherWriter{w}}
 	}
 	builders[readerFrom+hijacker] = func(w *responseWriter) measurable {
+		log.Println("readerFrom hijacker")
 		return struct {
 			*responseWriter
 			http.Hijacker
@@ -149,6 +170,7 @@ func init() {
 		}{w, hijackerWriter{w}, readerFromWriter{w}}
 	}
 	builders[readerFrom+pusher] = func(w *responseWriter) measurable {
+		log.Println("readerFrom pusher")
 		return struct {
 			*responseWriter
 			http.Pusher
@@ -156,6 +178,7 @@ func init() {
 		}{w, pusherWriter{w}, readerFromWriter{w}}
 	}
 	builders[flusher+hijacker+readerFrom] = func(w *responseWriter) measurable {
+		log.Println("hijacker readerFrom flusher")
 		return struct {
 			*responseWriter
 			http.Hijacker
@@ -164,6 +187,7 @@ func init() {
 		}{w, hijackerWriter{w}, flusherWriter{w}, readerFromWriter{w}}
 	}
 	builders[flusher+hijacker+pusher] = func(w *responseWriter) measurable {
+		log.Println("hijacker pusher flusher")
 		return struct {
 			*responseWriter
 			http.Hijacker
@@ -173,6 +197,7 @@ func init() {
 	}
 
 	builders[flusher+readerFrom+pusher] = func(w *responseWriter) measurable {
+		log.Println("readerFrom pusher flusher")
 		return struct {
 			*responseWriter
 			io.ReaderFrom
@@ -182,6 +207,7 @@ func init() {
 	}
 
 	builders[readerFrom+hijacker+pusher] = func(w *responseWriter) measurable {
+		log.Println("readerFrom hijacker pusher")
 		return struct {
 			*responseWriter
 			http.Hijacker
@@ -190,6 +216,7 @@ func init() {
 		}{w, hijackerWriter{w}, readerFromWriter{w}, pusherWriter{w}}
 	}
 	builders[readerFrom+hijacker+pusher+flusher] = func(w *responseWriter) measurable {
+		log.Println("readerFrom hijacker pusher flusher")
 		return struct {
 			*responseWriter
 			http.Hijacker
@@ -202,10 +229,13 @@ func init() {
 
 // MeasurableHandler ...
 var MeasurableHandler = func(h http.HandlerFunc) http.HandlerFunc {
+	log.Println("Measurable Handler has been called")
 	return func(w http.ResponseWriter, r *http.Request) {
-		t := time.Now()
+		// t := time.Now()
 		m := r.Method
 		p := r.URL.Path
+
+		timer := prometheus.NewTimer(duration.WithLabelValues(p, m))
 
 		requestsTotal.WithLabelValues(p, m).Inc()
 		mw := newMeasurableWriter(w)
@@ -213,6 +243,7 @@ var MeasurableHandler = func(h http.HandlerFunc) http.HandlerFunc {
 		if mw.Status()/100 > 3 {
 			errorsTotal.WithLabelValues(p, m, strconv.Itoa(mw.Status())).Inc()
 		}
-		duration.WithLabelValues(p, m, strconv.Itoa(mw.Status())).Observe(time.Since(t).Seconds())
+		timer.ObserveDuration()
+		// duration.WithLabelValues(p, m, strconv.Itoa(mw.Status())).Observe(time.Since(t).Seconds())
 	}
 }
