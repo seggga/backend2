@@ -16,6 +16,7 @@ const (
 	StatusParseError   = "parse_error"
 )
 
+// https://stackoverflow.com/questions/58779594/using-a-custom-http-responsewriter-to-write-cookies-based-on-the-response-from-a
 type (
 	measurable interface {
 		http.ResponseWriter
