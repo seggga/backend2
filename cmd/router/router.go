@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	_ "github.com/golang-migrate/migrate/v4/database/mysql"
@@ -69,7 +70,10 @@ func AddEntityHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	res.Body.Close()
 
+	timer := prometheus.NewTimer(red.DurationDBFunc.WithLabelValues("exec"))
 	_, err = db.Exec(sqlInsertEntity, r.FormValue("id"), r.FormValue("data"))
+	timer.ObserveDuration()
+
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
