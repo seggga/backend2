@@ -3,7 +3,7 @@ services:
 
   database:
     image: mysql:5.7
-    container_name: mysql-container
+    container_name: backend2-mysql
     volumes:
       - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
     environment:
@@ -17,9 +17,10 @@ services:
       dockerfile: dockerfile_acl
       context: .
     command: "/go/bin/acl"
-    container_name: acl-container
+    container_name: backend2-acl
     ports:
       - 8001:80
+      - 8091:9090
 
   router:
     build:
@@ -27,16 +28,18 @@ services:
       context: .
     depends_on:
       - "database"
-    container_name: router-container
+    container_name: badkend2-router
     command: "/go/bin/router"
     ports:
       - 8002:80
+      - 8092:9090
 
   grafana:
     image: grafana/grafana:6.4.4
     environment:
       - "GF_SECURITY_ADMIN_USER=admin"
       - "GF_SECURITY_ADMIN_PASSWORD=password"
+    container_name: backend2-grafana
     volumes:
       - ./grafana:/var/lib/grafana
     ports:
@@ -44,11 +47,13 @@ services:
 
   node-exporter:
     image: prom/node-exporter:v1.0.1
+    container_name: backend2-node-exporter
     ports:
       - 9100:9100
 
   prometheus:
     image: prom/prometheus:v2.33.3
+    container_name: backend2-prometheus
     volumes:
       - ./prometheus:/etc/prometheus
     ports:
