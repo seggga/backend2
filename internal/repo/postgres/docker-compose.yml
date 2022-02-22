@@ -1,0 +1,13 @@
+
+version: "3.3"
+services:
+  postgres:
+    image: postgres:13.4
+    container_name: pg_container
+    environment:
+      POSTGRES_USER: "pgadmin"
+      POSTGRES_PASSWORD: "pgpassword"
+    volumes:
+      - .:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
