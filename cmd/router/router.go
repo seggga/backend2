@@ -117,3 +117,26 @@ func ListEntitiesHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+// ListEntitiesHandler ...
+func ReadEntityHandler(w http.ResponseWriter, r *http.Request) {
+	rr := db.QueryRow(sqlSelectEntities)
+	i := &ListEntityItemResponse{}
+	err := rr.Scan(&i.ID, &i.Data)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	bb, err := json.Marshal(i)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Header().Add("Content-Type", "application/json")
+	_, err = w.Write(bb)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
