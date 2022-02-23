@@ -230,11 +230,10 @@ func init() {
 var MeasurableHandler = func(h http.HandlerFunc) http.HandlerFunc {
 	log.Println("Measurable Handler has been called")
 	return func(w http.ResponseWriter, r *http.Request) {
-		// t := time.Now()
 		m := r.Method
 		p := r.URL.Path
 
-		timer := prometheus.NewTimer(duration.WithLabelValues(p, m))
+		timer := prometheus.NewTimer(durationReq.WithLabelValues(p, m))
 
 		requestsTotal.WithLabelValues(p, m).Inc()
 		mw := newMeasurableWriter(w)
@@ -243,6 +242,5 @@ var MeasurableHandler = func(h http.HandlerFunc) http.HandlerFunc {
 			errorsTotal.WithLabelValues(p, m, strconv.Itoa(mw.Status())).Inc()
 		}
 		timer.ObserveDuration()
-		// duration.WithLabelValues(p, m, strconv.Itoa(mw.Status())).Observe(time.Since(t).Seconds())
 	}
 }
