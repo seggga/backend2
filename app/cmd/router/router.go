@@ -12,7 +12,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	_ "github.com/golang-migrate/migrate/v4/database/mysql"
-	"github.com/seggga/backend2/internal/red"
+	"github.com/seggga/backend2/app/internal/red"
 )
 
 var (

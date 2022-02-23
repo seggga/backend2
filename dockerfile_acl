@@ -8,7 +8,7 @@ COPY . ${WORKDIR}
 WORKDIR ${WORKDIR}
 
 RUN set -xe ;\
-    go build -o /go/bin/acl ./cmd/acl/acl.go ;\
+    go build -o /go/bin/acl ./acl/acl.go ;\
     ls -lhtr /go/bin/
 
 FROM golang:1.15.1

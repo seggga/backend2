@@ -4,7 +4,7 @@ ENV GOSUMDB=off
 ENV GO111MODULE=on
 ENV WORKDIR=${GOPATH}/src/router
 
-COPY . ${WORKDIR}
+COPY ./app/. ${WORKDIR}
 WORKDIR ${WORKDIR}
 
 RUN set -xe ;\

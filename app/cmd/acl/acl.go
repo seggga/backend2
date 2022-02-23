@@ -7,7 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"github.com/seggga/backend2/internal/red"
+	"github.com/seggga/backend2/app/internal/red"
 )
 
 var (

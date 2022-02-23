@@ -5,7 +5,7 @@ services:
     image: mysql:5.7
     container_name: backend2-mysql
     volumes:
-      - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+      - ./infrastructure/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
     environment:
       MYSQL_ROOT_PASSWORD: test
       MYSQL_DATABASE: test
@@ -40,8 +40,6 @@ services:
       - "GF_SECURITY_ADMIN_USER=admin"
       - "GF_SECURITY_ADMIN_PASSWORD=password"
     container_name: backend2-grafana
-    volumes:
-      - ./grafana:/var/lib/grafana
     ports:
       - 3000:3000
 
@@ -55,6 +53,6 @@ services:
     image: prom/prometheus:v2.33.3
     container_name: backend2-prometheus
     volumes:
-      - ./prometheus:/etc/prometheus
+      - ./infrastructure/prometheus:/etc/prometheus
     ports:
       - 9090:9090
