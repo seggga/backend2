@@ -2,17 +2,8 @@ package red
 
 import "github.com/prometheus/client_golang/prometheus"
 
-// const (
-// 	labelHandler = "my_handler"
-// 	labelMethod  = "my_method"
-// 	labelStatus  = "my_status"
-// 	labelQuery   = "my_query"
-// 	labelResult  = "my_result"
-// 	labelService = "my_service"
-// )
-
 var (
-	duration = prometheus.NewSummaryVec(
+	durationReq = prometheus.NewSummaryVec(
 		prometheus.SummaryOpts{
 			Name:       "backend2_duration_seconds",
 			Help:       "Summary of request duration in seconds",
@@ -37,41 +28,38 @@ var (
 )
 
 var (
-	DurationDBFunc = prometheus.NewSummaryVec(
+	durationDBFunc = prometheus.NewSummaryVec(
 		prometheus.SummaryOpts{
-			Name:       "backend2_duration_db_method_seconds",
+			Name:       "backend2_db_query_duration_seconds",
 			Help:       "Summary of database method request duration in seconds",
 			Objectives: map[float64]float64{0.9: 0.01, 0.95: 0.005, 0.99: 0.001},
 		},
 		[]string{"FUNC"},
 	)
 
-	DurationDBErrors = prometheus.NewCounterVec(
+	errorsDB = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "backend2_duration_query_db_method_seconds",
-			Help: "Summary of database Query method request duration in seconds",
+			Name: "backend2_db_query_errors",
+			Help: "Amount of errors on database requests",
 		},
-		[]string{"URI", "METHOD"},
+		[]string{"FUNC"},
 	)
 
-	DurationDBRequests = prometheus.NewSummaryVec(
-		prometheus.SummaryOpts{
-			Name:       "backend2_duration_query_row_db_method_seconds",
-			Help:       "Summary of database QueryRow method request duration in seconds",
-			Objectives: map[float64]float64{0.9: 0.01, 0.95: 0.005, 0.99: 0.001},
+	requestsDB = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "backend2_db_query_counter",
+			Help: "Total amount of database requests",
 		},
-		[]string{"URI", "METHOD"},
+		[]string{"URI"},
 	)
 )
 
 func init() {
-	prometheus.MustRegister(duration)
+	prometheus.MustRegister(durationReq)
 	prometheus.MustRegister(errorsTotal)
 	prometheus.MustRegister(requestsTotal)
 
-	prometheus.MustRegister(DurationDBFunc)
-	prometheus.MustRegister(DurationDBErrors)
-	prometheus.MustRegister(DurationDBRequests)
+	prometheus.MustRegister(durationDBFunc)
+	prometheus.MustRegister(errorsDB)
+	prometheus.MustRegister(requestsDB)
 }
-
-// todo: написать обертку для обращения к БД, втиснуть в нее метрики
