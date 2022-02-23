@@ -7,25 +7,25 @@ run:
 wrk_script:
 	docker run --rm \
 		-v `pwd`:/data \
-		williamyeh/wrk \
+		williamyeh/wrk:4.0.2 \
 		-t10 \
 		-c200 \
 		-d30s \
 		-H 'Host: sweet-home.com' \
 		--timeout 2s \
-		-s ./load_test/wrk.lua \
-		http://172.26.181.228:8002/entities
+		-s ./infrastructure/load_test/wrk_complex.lua \
+		http://172.26.177.199:8002/entities
 
 
 wrk_get:
 	docker run --rm \
-		williamyeh/wrk \
+		williamyeh/wrk:4.0.2 \
 		-t50 \
 		-c100 \
 		-d10s \
 		-H 'Host: sweet-home.com' \
 		--timeout 2s \
-		http://172.26.181.228:8002/entities
+		http://172.26.177.199:8002/entities
 
 
 # connect to DB in container
