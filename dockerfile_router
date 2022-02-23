@@ -4,11 +4,11 @@ ENV GOSUMDB=off
 ENV GO111MODULE=on
 ENV WORKDIR=${GOPATH}/src/router
 
-COPY ./app/. ${WORKDIR}
+COPY . ${WORKDIR}
 WORKDIR ${WORKDIR}
 
 RUN set -xe ;\
-    go build -o /go/bin/router ./cmd/router/router.go ;\
+    go build -o /go/bin/router ./app/cmd/router/router.go ;\
     ls -lhtr /go/bin/
 
 FROM golang:1.15.1
