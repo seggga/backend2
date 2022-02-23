@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	_ "github.com/golang-migrate/migrate/v4/database/mysql"
@@ -29,11 +28,14 @@ var (
 
 func main() {
 	router.
-		HandleFunc("/entities", measurable(ListEntitiesHandler)).
+		HandleFunc("/entities", measurable(ListAllEntitiesHandler)).
 		Methods(http.MethodGet)
 	router.
-		HandleFunc("/entity", measurable(AddEntityHandler)).
+		HandleFunc("/new-entity", measurable(AddEntityHandler)).
 		Methods(http.MethodPost)
+	router.
+		HandleFunc("/get-entity", measurable(ReadEntityHandler)).
+		Methods(http.MethodGet)
 	var err error
 	db, err = sql.Open("mysql", "root:test@tcp(database:3306)/test")
 	if err != nil {
@@ -70,9 +72,8 @@ func AddEntityHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	res.Body.Close()
 
-	timer := prometheus.NewTimer(red.DurationDBFunc.WithLabelValues("exec"))
-	_, err = db.Exec(sqlInsertEntity, r.FormValue("id"), r.FormValue("data"))
-	timer.ObserveDuration()
+	// _, err = db.Exec(sqlInsertEntity, r.FormValue("id"), r.FormValue("data"))
+	err = red.MeasurableDBExec(db, sqlInsertEntity, r.FormValue("id"), r.FormValue("data"))
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -90,9 +91,10 @@ type ListEntityItemResponse struct {
 	Data string `json:"data"`
 }
 
-// ListEntitiesHandler ...
-func ListEntitiesHandler(w http.ResponseWriter, r *http.Request) {
-	rr, err := db.Query(sqlSelectEntities)
+// ListAllEntitiesHandler ...
+func ListAllEntitiesHandler(w http.ResponseWriter, r *http.Request) {
+	// rr, err := db.Query(sqlSelectEntities)
+	rr, err := red.MeasurableDBQuery(db, sqlSelectEntities)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -122,12 +124,18 @@ func ListEntitiesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// ListEntitiesHandler ...
+const sqlSelectOneEntity = `
+  SELECT id, data FROM entities WHERE id = ?;
+  `
+
+// ReadEntityHandler ...
 func ReadEntityHandler(w http.ResponseWriter, r *http.Request) {
-	rr := db.QueryRow(sqlSelectEntities)
+	// row := db.QueryRow(sqlSelectEntities)
+	row := red.MeasurableDBQueryRow(db, sqlSelectOneEntity, r.FormValue("id"))
 	i := &ListEntityItemResponse{}
-	err := rr.Scan(&i.ID, &i.Data)
+	err := row.Scan(&i.ID, &i.Data)
 	if err != nil {
+		red.ErrorDBQueryRow()
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
